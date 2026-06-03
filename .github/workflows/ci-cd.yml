@@ -9,6 +9,7 @@ on:
     branches:
       - main
       - develop
+  workflow_dispatch: # Permet de lancer le workflow manuellement depuis GitHub
 
 jobs:
   # Build and test backend
@@ -73,7 +74,7 @@ jobs:
 
   deploy:
     needs: backend
-    if: github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
