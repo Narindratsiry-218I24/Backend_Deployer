@@ -43,8 +43,7 @@ class BulletinService
         $matieres = Matieres::where('classe_id', $classe->id)
             ->orWhere(function($query) use ($niveau) {
                 $query->whereNull('classe_id')
-                      ->where('cycle', $niveau->cycle)
-                      ->where('niveau_classe', $niveau->nom_niveau);
+                      ->where('niveau_id', $niveau->id);
             })
             ->get();
 
@@ -67,7 +66,7 @@ class BulletinService
     public function calculerMoyenneGenerale($inscriptionId, $periode)
     {
         $moyennesParMatiere = $this->calculerMoyennesParMatiere($inscriptionId, $periode);
-        
+
         $totalPondere = 0;
         $totalCoefficients = 0;
 
@@ -82,13 +81,13 @@ class BulletinService
     public function calculerMoyenneClasse($classeId, $periode, $anneeScolaireId = null)
     {
         $query = Inscription::where('id_classe', $classeId);
-        
+
         if ($anneeScolaireId) {
             $query->where('id_annee_scolaire', $anneeScolaireId);
         }
-        
+
         $inscriptions = $query->get();
-        
+
         if ($inscriptions->isEmpty()) {
             return 0;
         }
@@ -113,11 +112,11 @@ class BulletinService
         if (!$inscription) {
             return 0;
         }
-        
+
         $autresInscriptions = Inscription::where('id_classe', $inscription->id_classe)
             ->where('id_annee_scolaire', $inscription->id_annee_scolaire)
             ->get();
-        
+
         $moyennes = [];
         foreach ($autresInscriptions as $other) {
             $moy = $this->calculerMoyenneGenerale($other->id, $periode);
@@ -125,9 +124,9 @@ class BulletinService
                 $moyennes[$other->id] = $moy;
             }
         }
-        
+
         arsort($moyennes);
-        
+
         $rang = 1;
         $count = 0;
         $prevMoy = -1;
@@ -141,7 +140,7 @@ class BulletinService
             }
             $prevMoy = $moy;
         }
-        
+
         return 0;
     }
 
@@ -149,7 +148,7 @@ class BulletinService
     {
         try {
             DB::beginTransaction();
-            
+
             $inscription = Inscription::find($inscriptionId);
             if (!$inscription) {
                 throw new \Exception('Inscription non trouvée');
@@ -158,11 +157,11 @@ class BulletinService
             $bulletinExistant = Bulletin::where('inscription_id', $inscriptionId)
                 ->where('periode', $periode)
                 ->first();
-            
+
             if ($bulletinExistant && !$forceUpdate) {
                 throw new \Exception('Un bulletin existe déjà pour cette période.');
             }
-            
+
             $moyenneGenerale = $this->calculerMoyenneGenerale($inscriptionId, $periode);
             $moyenneClasse = $this->calculerMoyenneClasse(
                 $inscription->id_classe,
@@ -171,7 +170,7 @@ class BulletinService
             );
             $rang = $this->determinerRang($inscriptionId, $periode);
             $decision = $moyenneGenerale >= 10 ? 'ADMIS' : ($moyenneGenerale >= 8 ? 'REPRISE' : 'REDOUBLANT');
-            
+
             $data = [
                 'inscription_id' => $inscriptionId,
                 'moyenne_eleve' => $moyenneGenerale,
@@ -190,9 +189,9 @@ class BulletinService
             } else {
                 $bulletin = Bulletin::create($data);
             }
-            
+
             $moyennesParMatiere = $this->calculerMoyennesParMatiere($inscriptionId, $periode);
-            
+
             foreach ($moyennesParMatiere as $matiereId => $details) {
                 DetailBulletins::create([
                     'bulletin_id' => $bulletin->id,
@@ -202,11 +201,11 @@ class BulletinService
                     'appreciation' => $this->genererAppreciationMatiere($details['moyenne'])
                 ]);
             }
-            
+
             DB::commit();
-            
+
             return Bulletin::with(['inscription.eleve', 'detailBulletins.matiere'])->find($bulletin->id);
-            
+
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Erreur generation bulletin: ' . $e->getMessage());
@@ -230,7 +229,7 @@ class BulletinService
 
         rsort($moyennes);
         $uniqueMoyennes = array_values(array_unique($moyennes));
-        
+
         foreach ($uniqueMoyennes as $index => $m) {
             if ($m == $moyenneEleve) {
                 return $index + 1;
@@ -281,7 +280,7 @@ class BulletinService
         $inscriptions = Inscription::where('id_classe', $classeId)
             ->where('id_annee_scolaire', $anneeScolaireId)
             ->get();
-        
+
         if ($inscriptions->isEmpty()) {
             return [];
         }
@@ -312,18 +311,18 @@ class BulletinService
             $rangs[$id] = $currentRang;
             $prevMoy = $moy;
         }
-        
+
         $resultats = [];
         foreach ($inscriptions as $inscription) {
             try {
                 // Pour la classe, on peut optimiser en passant les rangs déjà calculés
                 // Mais pour garder la logique propre, on appelle genererBulletin ou on duplique un peu
                 // Ici je vais appeler une version légèrement modifiée ou juste faire le save direct
-                
+
                 $bulletinExistant = Bulletin::where('inscription_id', $inscription->id)
                     ->where('periode', $periode)
                     ->first();
-                
+
                 $moyEleve = $moyennesG[$inscription->id] ?? 0;
                 $rangEleve = $rangs[$inscription->id] ?? 0;
                 $decision = $moyEleve >= 10 ? 'ADMIS' : ($moyEleve >= 8 ? 'REPRISE' : 'REDOUBLANT');
@@ -360,7 +359,7 @@ class BulletinService
                 DB::commit();
 
                 $resultats[$inscription->id] = [
-                    'success' => true, 
+                    'success' => true,
                     'bulletin' => Bulletin::with(['inscription.eleve', 'detailBulletins.matiere'])->find($bulletin->id)
                 ];
             } catch (\Exception $e) {
@@ -368,7 +367,7 @@ class BulletinService
                 $resultats[$inscription->id] = ['success' => false, 'error' => $e->getMessage()];
             }
         }
-        
+
         return $resultats;
     }
 

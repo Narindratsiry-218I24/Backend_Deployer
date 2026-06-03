@@ -14,8 +14,7 @@ class Matieres extends Model
         'nom',
         'coefficient',
         'classe_id',
-        'cycle',
-        'niveau_classe',
+        'niveau_id',
         'section',
     ];
 

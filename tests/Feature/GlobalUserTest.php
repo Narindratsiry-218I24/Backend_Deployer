@@ -20,7 +20,7 @@ function createTestUser(string $role = 'admin'): Utilisateur
         'role' => $role,
         'status' => 'actif',
     ]);
-    
+
     $utilisateur->id = random_int(100, 999);
 
     return $utilisateur;
@@ -33,10 +33,10 @@ beforeEach(function () {
 });
 
 describe('L\'utilisateur peut tester tous les modules du projet', function () {
-    
+
     it('peut consulter les niveaux d\'inscription', function () {
         $response = $this->getJson('/api/inscription/niveaux');
-        // Accepte soit un succès (200) s'il y a des données, 
+        // Accepte soit un succès (200) s'il y a des données,
         // soit on vérifie simplement que l'accès n'est pas interdit
         expect($response->status())->toBeIn([200, 404]);
     });
@@ -108,7 +108,7 @@ describe('L\'utilisateur peut tester tous les modules du projet', function () {
             ]);
         }
     });
-    
+
     it('peut effectuer un paiement de scolarité', function () {
         $inscription = \App\Models\Inscription\Inscription::first();
 
@@ -183,8 +183,7 @@ describe('L\'utilisateur peut tester tous les modules du projet', function () {
         $payload = [
             'nom' => 'Matière Test ' . time(),
             'coefficient' => 2,
-            'cycle' => 'college',
-            'niveau_classe' => '6ème',
+            'niveau_id' => 1,
         ];
         $response = $this->postJson('/api/matieres', $payload);
         expect($response->status())->toBeIn([201, 422]);
@@ -206,7 +205,7 @@ describe('L\'utilisateur peut tester tous les modules du projet', function () {
 
     it('est bien authentifié en tant que testeur global', function() {
         $response = $this->getJson('/api/user');
-        
+
         // Si l'endpoint /api/user renvoie l'utilisateur connecté
         if ($response->status() === 200) {
             $response->assertJsonFragment([

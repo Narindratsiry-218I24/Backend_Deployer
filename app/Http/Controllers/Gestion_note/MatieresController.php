@@ -55,8 +55,7 @@ class MatieresController extends Controller
             ],
             'coefficient' => 'required|integer|min:1|max:10',
             'classe_id' => 'nullable|exists:classes,id',
-            'cycle' => 'nullable|string|max:50',
-            'niveau_classe' => 'nullable|string|max:50',
+            'niveau_id' => 'nullable|exists:niveaux,id',
             'section' => 'nullable|string|max:50',
         ]);
 
@@ -64,7 +63,7 @@ class MatieresController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $matiere = Matieres::create($request->only(['nom', 'coefficient', 'classe_id', 'cycle', 'niveau_classe', 'section']));
+        $matiere = Matieres::create($request->only(['nom', 'coefficient', 'classe_id', 'niveau_id', 'section']));
 
         return response()->json([
             'success' => true,
@@ -161,8 +160,7 @@ class MatieresController extends Controller
             ],
             'coefficient' => 'sometimes|integer|min:1|max:10',
             'classe_id' => 'sometimes|nullable|exists:classes,id',
-            'cycle' => 'sometimes|nullable|string|max:50',
-            'niveau_classe' => 'sometimes|nullable|string|max:50',
+            'niveau_id' => 'sometimes|nullable|exists:niveaux,id',
             'section' => 'sometimes|nullable|string|max:50',
         ]);
 
@@ -170,7 +168,7 @@ class MatieresController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $matiere->update($request->only(['nom', 'coefficient', 'classe_id', 'cycle', 'niveau_classe', 'section']));
+        $matiere->update($request->only(['nom', 'coefficient', 'classe_id', 'niveau_id', 'section']));
 
         return response()->json([
             'success' => true,
