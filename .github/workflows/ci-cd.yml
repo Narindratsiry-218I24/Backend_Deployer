@@ -77,32 +77,6 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Deploy to DirectAdmin via SSH
-        uses: easingthemes/ssh-deploy@main
-        with:
-          SSH_PRIVATE_KEY: ${{ secrets.CLE_DEPLOIEMENT }}
-          REMOTE_HOST: ${{ secrets.HOST }}
-          REMOTE_USER: ${{ secrets.USERNAME }}
-          REMOTE_PORT: ${{ secrets.PORT || '2222' }}
-          ARGS: "-rltgoDzvO --delete"
-          SOURCE: "./"
-          TARGET: "/domains/api.edunova.mg/public_html/"
-          EXCLUDE: "/.git/, /.github/, /tests/, /.env"
-
-      - name: Execute remote commands after deploy
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.CLE_DEPLOIEMENT }}
-          port: ${{ secrets.PORT || '2222' }}
-          script: |
-            cd /domains/api.edunova.mg/public_html/
-            composer install --no-dev --optimize-autoloader
-            php artisan migrate --force
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
-            php artisan l5-swagger:generate
+      - name: Trigger Webhook Deployment
+        run: |
+          curl -sS "https://api.edunova.mg/deploy.php?token=${{ secrets.DEPLOY_TOKEN }}"
