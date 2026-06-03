@@ -70,3 +70,36 @@ jobs:
         run: |
           php artisan migrate --force
           ./vendor/bin/pest
+
+  deploy:
+    needs: backend
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Deploy to DirectAdmin via SSH
+        uses: easingthemes/ssh-deploy@main
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.CLE_DEPLOIEMENT }}
+          REMOTE_HOST: ${{ secrets.HOST }}
+          REMOTE_USER: ${{ secrets.USERNAME }}
+          ARGS: "-rltgoDzvO --delete"
+          SOURCE: "./"
+          TARGET: "/domains/api.edunova.mg/public_html/"
+          EXCLUDE: "/.git/, /.github/, /tests/, /.env"
+
+      - name: Execute remote commands after deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.CLE_DEPLOIEMENT }}
+          script: |
+            cd /domains/api.edunova.mg/public_html/
+            composer install --no-dev --optimize-autoloader
+            php artisan migrate --force
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan l5-swagger:generate
