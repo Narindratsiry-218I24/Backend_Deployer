@@ -85,7 +85,7 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.CLE_DEPLOIEMENT }}
           REMOTE_HOST: ${{ secrets.HOST }}
           REMOTE_USER: ${{ secrets.USERNAME }}
-          REMOTE_PORT: ${{ secrets.PORT || '22' }}
+          REMOTE_PORT: ${{ secrets.PORT || '2222' }}
           ARGS: "-rltgoDzvO --delete"
           SOURCE: "./"
           TARGET: "/domains/api.edunova.mg/public_html/"
@@ -97,7 +97,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.CLE_DEPLOIEMENT }}
-          port: ${{ secrets.PORT || '22' }}
+          port: ${{ secrets.PORT || '2222' }}
           script: |
             cd /domains/api.edunova.mg/public_html/
             composer install --no-dev --optimize-autoloader
