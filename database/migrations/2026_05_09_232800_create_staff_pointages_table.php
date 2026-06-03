@@ -22,7 +22,7 @@ return new class extends Migration
             $table->unsignedBigInteger('created_by')->nullable();
             $table->timestamps();
 
-            $table->foreign('staff_id')->references('id')->on('staff')->onDelete('cascade');
+            $table->foreign('staff_id')->references('id')->on('staffs')->onDelete('cascade');
             $table->foreign('created_by')->references('id')->on('utilisateurs')->onDelete('set null');
         });
     }

@@ -39,7 +39,7 @@ class BulletinService
 
         // Filtrer les matières correspondant à l'élève :
         // 1. Matières spécifiques à sa classe
-        // 2. OU Matières globales correspondant à son cycle et niveau (champs strings)
+        // 2. OU Matières globales correspondant à son cycle et niveau (via niveau_id foreign key)
         $matieres = Matieres::where('classe_id', $classe->id)
             ->orWhere(function($query) use ($niveau) {
                 $query->whereNull('classe_id')
